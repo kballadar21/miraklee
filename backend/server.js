@@ -123,22 +123,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Middleware para verificar el inicio de sesión
-function requireLogin(req, res, next) {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.redirect('/login');
-  }
-
-  try {
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    req.userEmail = decodedToken.email;
-    next();
-  } catch (error) {
-    return res.redirect('/login');
-  }
-}
 
 
 function generateToken(email, password, name, lastName, city, postalCode, dniNie, gender, phone, address, dateOfBirth) {
@@ -155,13 +139,15 @@ function authenticateToken(req, res, next) {
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     req.userEmail = decodedToken.email;
+
+    
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Token de autenticación inválido.' });
   }
 }
 
-app.get('/profile', authenticateToken,requireLogin, (req, res) => {
+app.get('/profile', authenticateToken, (req, res) => {
   const email = req.userEmail;
   User.findOne({ email })
     .then(user => {
